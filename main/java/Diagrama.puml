@@ -1,0 +1,124 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+' Enumeración
+enum NivelAlerta {
+  CRITICO
+  ADVERTENCIA
+  INFORMATIVO
+}
+
+Alerta --> NivelAlerta
+NotificadorEmail ..> NivelAlerta
+NotificadorSMS ..> NivelAlerta
+RegistradorLogs ..> NivelAlerta
+
+
+' Clase Alerta
+class Alerta {
+  - String idSensor
+  - String mensaje
+  - NivelAlerta nivel
+  - Date fechaHora
+  + getIdSensor(): String
+  + getMensaje(): String
+  + getNivel(): NivelAlerta
+  + getFechaHora(): Date
+}
+
+' Clase Sensor
+class Sensor {
+  - String id
+  - String tipo
+  - double valor
+  - String ubicacion
+  - Date ultimaActualizacion
+  + getId(): String
+  + getTipo(): String
+  + getValor(): double
+  + setValor(double)
+  + getUbicacion(): String
+  + getUltimaActualizacion(): Date
+  + setUltimaActualizacion(Date)
+}
+
+' Interfaz Estrategia
+interface EstrategiaAnalisis {
+  + analizar(Sensor): Alerta
+}
+
+' Estrategias concretas
+class EstrategiaAnalisisBasica
+class EstrategiaAnalisisCalidadAire
+class EstrategiaAnalisisEnergia
+class EstrategiaAnalisisHumedad
+class EstrategiaAnalisisTemperatura
+class EstrategiaAnalisisVibracion
+
+EstrategiaAnalisisBasica ..|> EstrategiaAnalisis
+EstrategiaAnalisisCalidadAire ..|> EstrategiaAnalisis
+EstrategiaAnalisisEnergia ..|> EstrategiaAnalisis
+EstrategiaAnalisisHumedad ..|> EstrategiaAnalisis
+EstrategiaAnalisisTemperatura ..|> EstrategiaAnalisis
+EstrategiaAnalisisVibracion ..|> EstrategiaAnalisis
+
+' Interfaz Observador
+interface ObservadorAlerta {
+  + actualizar(Alerta)
+  + obtenerTipoObservador(): String
+}
+
+' Observadores concretos
+class NotificadorEmail
+class NotificadorSMS
+class NotificadorDashboard
+class RegistradorLogs {
+  - List<String> logs
+  + obtenerLogs(): List<String>
+}
+
+NotificadorEmail ..|> ObservadorAlerta
+NotificadorSMS ..|> ObservadorAlerta
+NotificadorDashboard ..|> ObservadorAlerta
+RegistradorLogs ..|> ObservadorAlerta
+
+' Interfaz Sujeto
+interface SujetoAlerta {
+  + registrarObservador(ObservadorAlerta)
+  + eliminarObservador(ObservadorAlerta)
+  + notificarObservadores(Alerta)
+}
+
+' Clase NotificadorAlertas
+class NotificadorAlertas {
+  - List<ObservadorAlerta> observadores
+  - EstrategiaAnalisis estrategia
+  + verificarYNotificar(Sensor)
+  + establecerEstrategiaAnalisis(EstrategiaAnalisis)
+  + obtenerCantidadObservadores(): int
+  + obtenerObservadores(): List<ObservadorAlerta>
+}
+
+NotificadorAlertas ..|> SujetoAlerta
+NotificadorAlertas --> EstrategiaAnalisis
+NotificadorAlertas --> ObservadorAlerta
+NotificadorAlertas --> Sensor
+NotificadorAlertas --> Alerta
+
+' Clase GestorSensores
+class GestorSensores {
+  - Map<String, Sensor> sensores
+  + registrarSensor(Sensor)
+  + actualizarValorSensor(String, double)
+  + obtenerSensor(String): Sensor
+  + eliminarSensor(String)
+  + obtenerTodosSensores(): List<Sensor>
+  + obtenerCantidadSensores(): int
+  + obtenerSensoresPorTipo(String): List<Sensor>
+  + obtenerEstadisticas(): String
+}
+
+GestorSensores --> Sensor
+GestorSensores --> NotificadorAlertas
+
+@enduml
